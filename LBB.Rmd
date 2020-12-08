@@ -1,0 +1,156 @@
+---
+title: "LBB"
+author: "Meta Mahyarani"
+date: "12/6/2020"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: 
+        collapsed: false
+    df_print: paged 
+    number_sections: true
+    theme: cosmo
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+# clear-up the environment
+rm(list = ls())
+
+# chunk options
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  comment = "#>"
+)
+
+# scientific notation
+options(scipen = 99)
+```
+
+# Input Data
+
+Pertama read datanya bank telemarketing dari sebuah bank di Portugal
+
+```{r}
+telemarketing <- read.csv("bank/bank-full.csv", stringsAsFactors = T,header=TRUE, sep=";")
+```
+
+## Data Inspection
+
+```{r}
+telemarketing
+```
+
+
+```{r}
+head(telemarketing)
+```
+
+```{r}
+tail(telemarketing)
+```
+
+```{r}
+dim(telemarketing)
+```
+
+```{r}
+names(telemarketing)
+```
+
+Berdasarkan inspeksi yang dilakukan, maka saya simpulkan bahwa:
+* telemarketing terdapat 45211 baris dan 17 kolom
+* Dari masing-masing kolom terdapat : "age", "job", "marital", "education","default", "balance","housing","loan","contact","day","month","duration", ""campaign","pdays","previous","poutcome","y"
+
+## Data Cleansing & Coertions
+
+```{r}
+str(telemarketing)
+```
+
+**Check apakah ada missing value atau tidak**
+
+```{r}
+colSums(is.na(telemarketing))
+```
+
+```{r}
+anyNA(telemarketing)
+```
+
+Dari hasil pengecekan ternyata tidak ada missing value didalam data telemarketing tersebut.
+
+# Data Explanation
+
+```{r}
+summary(telemarketing)
+```
+
+Summary :
+1. Pada data telemarketing, pekerjaan yang paling banyak yaitu pekerjaan yang dikelompokkan `others` sebanyak 6835.
+2. Status pernikahan yang paling banyak yaitu `married` sebanyak 12790.
+3. Pendidikan yang paling banyak yaitu `tertiary` sebanyak 13301.
+4. Panggilan dengan berdurasi minimal `durasi` yaitu 0.0 dan maksimal 4918. 
+
+**Check keterkaitan umur dengan pendidikan, pekerjaan dan status pernikahan**
+```{r}
+tele <- aggregate(formula = duration~job+marital+education, data = telemarketing, FUN = mean)
+
+tele[order(tele$duration, decreasing = T),]
+```
+```{r}
+aggregate(formula = duration~job+marital+education, data = telemarketing, FUN = var)
+```
+
+```{r}
+aggregate(formula = duration~job+marital+education, data = telemarketing, FUN = sd)
+```
+
+# Data Manipulation & Transformation
+1. Berapa banyak data yang terjadi perceraian pada usia diatas 40 tahun?
+
+```{r}
+telemarketing[telemarketing$age > 40 & telemarketing$marital == "divorced",]
+```
+
+**Jawaban : yang terjadi perceraian pada usia diatas 40 tahun sebanyak 3437.**
+
+2. Berapa banyak data yang memiliki status perceraian dan juga memiliki pinjaman?
+
+```{r}
+telemarketing[telemarketing$marital == "divorced" & telemarketing$loan == "yes",]
+```
+
+**Jawaban : yang mempunyai status perceraian dan juga memiliki pinjaman sebanyak 921.**
+
+3. Berapa banyak data yang memiliki status perceraian, pendidikan `primary` atau `secondary` dan tidak mempunyai rumah?
+
+```{r}
+telemarketing[telemarketing$marital == "divorced" & (telemarketing$education == "primary" | telemarketing$education == "secondary") & telemarketing$housing == "no",]
+```
+**Jawaban : berdasarkan data tersebut yang memiliki status perceraian, pendidikan "primary" atau "secondary" dan tidak mempunyai rumah sebanyak 1497**
+
+
+5. Berapa total dari age dan housing?
+
+```{r}
+xtabs(age~housing, telemarketing)
+```
+
+**Jawaban : berdasarkan data diatas yang memiliki rumah lebih banyak daripada yang tidak memiliki rumah.**
+
+6. Berdasarkan data telemarketing, berapa jumlah terbanyak age yang berkaitan dengan housing serta marital?
+
+```{r}
+xtabs(age~housing+marital, telemarketing)
+```
+
+```{r}
+plot(xtabs(age~housing+marital, telemarketing))
+```
+
+# Kesimpulan
+Berdasarkan data telemarketing diatas, status pernikahan terdiri dari `divorced`, `married` dan `single`. Dari percobaan yang telah dilakukan diatas maka disimpulkan bahwa seseorang yang telah mempunyai rumah sebanyak 984475 dan seseorang yang memiliki rumah sebanyak 866292. Dan percobaan yang telah saya lakukan lagi, berapa banyak usia diatas 40 tahun telah memiliki status penikahan yaitu `divorced`, dari percobaan tersebut menghasilkan hasil yaitu  3437.s
